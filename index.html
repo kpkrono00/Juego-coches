@@ -1,5 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAaMIoonryIhKLUl2y84pA7nwqSwm7y-cM",
+    authDomain: "juego-coches-b65c8.firebaseapp.com",
+    projectId: "juego-coches-b65c8",
+    storageBucket: "juego-coches-b65c8.firebasestorage.app",
+    messagingSenderId: "396138782153",
+    appId: "1:396138782153:web:25117294a5386992029c18"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  window.auth = getAuth(app);
+  window.db = getFirestore(app);
+</script>
 <head>
 <meta charset="UTF-8">
 <title>Juego de Coches</title>
