@@ -4,53 +4,49 @@
 <meta charset="UTF-8">
 <title>Juego de Coches</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #000;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-  #loginBox {
-    background: #1c1c1c;
-    padding: 25px;
-    border-radius: 10px;
-    width: 300px;
-    text-align: center;
-  }
+#loginBox {
+  background: #111;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+}
 
-  input {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 5px;
-    border: none;
-  }
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 5px;
+  border: none;
+}
 
-  button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 5px;
-    background: #00aaff;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-  }
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: #0a84ff;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
 
-  button:hover {
-    background: #0088cc;
-  }
-
-  #game {
-    display: none;
-    font-size: 24px;
-  }
+#game {
+  display: none;
+  text-align: center;
+}
 </style>
 </head>
 
@@ -58,69 +54,61 @@
 
 <div id="loginBox">
   <h2>Registro / Login</h2>
-
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Contraseña">
-
-  <button onclick="registrar()">Registrarse</button>
-  <button onclick="entrar()">Entrar</button>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Contraseña">
+  <button id="register">Registrarse</button>
+  <button id="login">Entrar</button>
 </div>
 
 <div id="game">
-  🎮 JUEGO CARGADO <br>
-  (aquí va tu juego de coches)
+  <h1>🚗 Juego de Coches</h1>
+  <p>Sesión iniciada correctamente</p>
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } 
-  from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAaMIoonryIhKLUl2y84pA7nwqSwm7y-cM",
-    authDomain: "juego-coches-b65c8.firebaseapp.com",
-    projectId: "juego-coches-b65c8",
-    storageBucket: "juego-coches-b65c8.firebasestorage.app",
-    messagingSenderId: "396138782153",
-    appId: "1:396138782153:web:25117294a5386992029c18"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
+  authDomain: "juego-de-coches-d2613.firebaseapp.com",
+  projectId: "juego-de-coches-d2613",
+  storageBucket: "juego-de-coches-d2613.firebasestorage.app",
+  messagingSenderId: "34324442906",
+  appId: "1:34324442906:web:640ef52af5b9a0442806a3"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-  // REGISTRARSE
-  window.registrar = function () {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+document.getElementById("register").onclick = () => {
+  const email = email.value;
+  const password = password.value;
+  createUserWithEmailAndPassword(auth, email, password)
+    .then(() => alert("Registrado ✅"))
+    .catch(err => alert(err.message));
+};
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        alert("Registrado correctamente 🔥");
-      })
-      .catch(err => alert(err.message));
-  };
+document.getElementById("login").onclick = () => {
+  const email = email.value;
+  const password = password.value;
+  signInWithEmailAndPassword(auth, email, password)
+    .catch(err => alert(err.message));
+};
 
-  // LOGIN
-  window.entrar = function () {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        alert("Has entrado 😎");
-      })
-      .catch(err => alert(err.message));
-  };
-
-  // SESIÓN ACTIVA
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("game").style.display = "block";
-    }
-  });
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("game").style.display = "block";
+  }
+});
 </script>
 
 </body>
 </html>
+
