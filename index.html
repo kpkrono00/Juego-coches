@@ -162,7 +162,11 @@ window.addEventListener("blur", ()=>{ for(let k in keys) keys[k]=false; });
 // ---------- MENÚ ----------
 function toggleMenu(){ paused = !paused; menuOverlay.style.display = paused?'flex':'none'; }
 document.querySelectorAll('#menuBox .menuButton[data-section]').forEach(btn=>{
-  btn.addEventListener("click", ()=>{ const id=btn.getAttribute('data-section'); document.querySelectorAll('.section').forEach(s=>s.style.display='none'); document.getElementById(id).style.display='block'; });
+  btn.addEventListener("click", ()=>{
+    const id=btn.getAttribute('data-section');
+    document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+    document.getElementById(id).style.display='block';
+  });
 });
 document.querySelectorAll('#menuBox .option[data-drive]').forEach(opt=>{
   opt.addEventListener("click", ()=>{ driveType=opt.getAttribute('data-drive'); modeDisplay.textContent="Modo: "+(driveType==="normal"?"Normal":driveType==="race"?"Carrera":"Drift"); });
