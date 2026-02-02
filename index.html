@@ -2,121 +2,163 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Juego de Coches PRO</title>
+<title>Juego de Coches</title>
+
 <style>
-body { margin:0; font-family:Arial,sans-serif; background:#111; color:white; overflow:hidden; }
-input { padding:8px; margin:5px 0; border-radius:5px; border:1px solid #555; width:200px; }
-button { cursor:pointer; border:none; border-radius:5px; padding:8px 15px; transition:all 0.2s; }
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial, sans-serif;
+  background:#111;
+  color:white;
+}
 
 /* LOGIN */
-#loginBox { background:#111; padding:30px; border-radius:15px; text-align:center; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2000; box-shadow:0 0 30px #000; }
-#loginBox h2 { margin-bottom:15px; }
+#loginBox{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#0f0f0f;
+  padding:30px;
+  border-radius:15px;
+  box-shadow:0 0 40px black;
+  z-index:1000;
+}
+#loginBox input{
+  width:220px;
+  padding:10px;
+  margin:6px 0;
+  border-radius:6px;
+  border:none;
+}
+#loginBox button{
+  padding:10px 18px;
+  margin:8px 4px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+}
 
 /* JUEGO */
-#game { display:none; width:100vw; height:100vh; position:relative; }
-#map { position:absolute; inset:0; background: repeating-linear-gradient(45deg,#2b2b2b 0px,#2b2b2b 40px,#3a3a3a 40px,#3a3a3a 80px); overflow:hidden; }
+#game{
+  display:none;
+  width:100vw;
+  height:100vh;
+  position:relative;
+}
 
-/* Obstáculos */
-.obstacle { position:absolute; width:60px; height:60px; background:orange; border-radius:10px; border:2px solid #333; }
+/* MAPA */
+#map{
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      #2a2a2a 0px,
+      #2a2a2a 40px,
+      #333 40px,
+      #333 80px
+    );
+}
 
-/* Coche */
-#car { position:absolute; width:26px; height:40px; background:red; border:2px solid black; top:50%; left:50%; transform-origin:50% 50%; margin-left:-13px; margin-top:-20px; transition:all 0.1s; z-index:500; }
-
-/* Partículas */
-.particle { position:absolute; width:6px; height:6px; background:gray; border-radius:50%; pointer-events:none; opacity:0.8; transition:opacity 0.1s; }
-
-/* MENÚ */
-#menuOverlay { position:absolute; inset:0; background:rgba(0,0,0,0.7); display:none; z-index:1500; justify-content:center; align-items:center; pointer-events:none; flex-direction:column; }
-#menuBox { width:650px; background:rgba(0,0,0,0.95); padding:25px; border-radius:20px; display:flex; flex-direction:column; align-items:center; pointer-events:auto; box-shadow:0 0 30px #000; }
-.menuButton { padding:12px 25px; margin:10px; font-size:20px; border-radius:8px; border:1px solid #444; cursor:pointer; background:#1e90ff; color:white; width:80%; text-align:center; }
-.menuButton:hover { background:#4682b4; transform:scale(1.05); }
-.section { display:none; margin-top:15px; width:100%; max-height:250px; overflow-y:auto; pointer-events:auto; }
-.option { padding:12px; border:1px solid #444; margin-bottom:10px; cursor:pointer; border-radius:8px; transition:all 0.2s; }
-.option:hover { background:#333; }
-.option.selected { background:#1e90ff; color:white; }
+/* COCHE */
+#car{
+  position:absolute;
+  width:26px;
+  height:48px;
+  background:red;
+  border:2px solid black;
+  border-radius:6px;
+  left:50%;
+  top:50%;
+  transform-origin:50% 50%;
+}
 
 /* TURBO UI */
-#turboUI { position:fixed; right:30px; top:50%; width:120px; height:120px; z-index:900; pointer-events:none; }
-#turboRing { width:100%; height:100%; border-radius:50%; background:conic-gradient(dodgerblue 360deg,#111 360deg); transition:background 0.1s; }
-#turboCenter { position:absolute; width:75px; height:75px; background:black; border-radius:50%; top:22.5px; left:22.5px; display:flex; align-items:center; justify-content:center; font-size:32px; pointer-events:none; border:2px solid #1e90ff; }
+#turboUI{
+  position:fixed;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  width:120px;
+  height:120px;
+}
+#turboRing{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background:conic-gradient(#1e90ff 360deg,#111 360deg);
+}
+#turboCenter{
+  position:absolute;
+  inset:25px;
+  background:black;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  border:2px solid #1e90ff;
+}
 
-/* Modo display */
-#modeDisplay { position:fixed; left:10px; top:10px; color:white; font-size:22px; z-index:950; text-shadow:0 0 5px #000; }
-
-/* Mini mapa */
-#minimap { position:fixed; right:10px; bottom:10px; width:200px; height:200px; background:#222; border:2px solid #555; z-index:950; }
-#miniCar { position:absolute; width:8px; height:12px; background:red; top:50%; left:50%; transform-origin:50% 50%; border:1px solid black; }
+/* MENÚ */
+#menuOverlay{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.75);
+  display:none;
+  z-index:900;
+  justify-content:center;
+  align-items:center;
+}
+#menuBox{
+  background:#0e0e0e;
+  padding:30px;
+  border-radius:20px;
+  width:500px;
+}
+.menuBtn{
+  width:100%;
+  padding:14px;
+  margin:10px 0;
+  font-size:18px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
 </style>
 </head>
+
 <body>
 
 <!-- LOGIN -->
 <div id="loginBox">
-  <h2>Registro / Login</h2>
-  <input id="emailInput" type="email" placeholder="Email"><br>
-  <input id="passwordInput" type="password" placeholder="Contraseña"><br><br>
-  <button id="registerBtn">Registrarse</button>
-  <button id="loginBtn">Entrar</button>
+  <h2>Login / Registro</h2>
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Contraseña"><br>
+  <button id="register">Registrarse</button>
+  <button id="login">Entrar</button>
 </div>
 
 <!-- JUEGO -->
 <div id="game">
   <div id="map"></div>
   <div id="car"></div>
-  <div id="modeDisplay">Modo: Normal</div>
+
   <div id="menuOverlay">
     <div id="menuBox">
-      <h2>Opciones del Juego</h2>
-      <button class="menuButton" data-section="cochesSection">Coches</button>
-      <button class="menuButton" data-section="driveSection">Tipo de conducción</button>
-      <button class="menuButton" data-section="worldsSection">Mundos</button>
-      <button class="menuButton" data-section="multiplayerSection">Multijugador</button>
-      <div id="cochesSection" class="section"></div>
-      <div id="driveSection" class="section">
-        <div class="option" data-drive="normal">Normal</div>
-        <div class="option" data-drive="race">Carrera</div>
-        <div class="option" data-drive="drift">Drift</div>
-      </div>
-      <div id="worldsSection" class="section">
-        <div class="option" data-world="normal">Mundo Normal</div>
-        <div class="option" data-world="race">Carrera</div>
-      </div>
-      <div id="multiplayerSection" class="section">
-        <h3>Multijugador</h3>
-        <button class="menuButton" data-submenu="friendsSubmenu">Añadir Amigos</button>
-        <button class="menuButton" data-submenu="roomSubmenu">Sala</button>
-        <button class="menuButton" data-submenu="registerSubmenu">Registrarse</button>
-        <div id="friendsSubmenu" class="section">
-          <input type="text" id="friendName" placeholder="Nombre del amigo" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="addFriendBtn" class="menuButton">Añadir</button>
-          <div id="friendsList"></div>
-        </div>
-        <div id="roomSubmenu" class="section">
-          <input type="text" id="roomCode" placeholder="Código de sala" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="createRoomBtn" class="menuButton">Crear Sala</button>
-          <input type="text" id="joinCode" placeholder="Código para unirse" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="joinRoomBtn" class="menuButton">Unirse</button>
-          <div id="roomList"></div>
-        </div>
-        <div id="registerSubmenu" class="section">
-          <input type="text" id="username" placeholder="Nombre" style="width:90%; padding:8px; margin-bottom:5px;">
-          <input type="password" id="passwordReg" placeholder="Contraseña" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="registerUserBtn" class="menuButton">Registrar</button>
-          <div id="registerStatus"></div>
-        </div>
-      </div>
+      <h2>Menú</h2>
+      <button class="menuBtn" id="resumeBtn">Continuar</button>
     </div>
   </div>
 
-  <!-- TURBO UI -->
   <div id="turboUI">
     <div id="turboRing"></div>
     <div id="turboCenter">⚡</div>
-  </div>
-
-  <!-- MINI MAPA -->
-  <div id="minimap">
-    <div id="miniCar"></div>
   </div>
 </div>
 
@@ -124,7 +166,7 @@ button { cursor:pointer; border:none; border-radius:5px; padding:8px 15px; trans
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-// -------- FIREBASE --------
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
   authDomain: "juego-de-coches-d2613.firebaseapp.com",
@@ -133,93 +175,82 @@ const firebaseConfig = {
   messagingSenderId: "34324442906",
   appId: "1:34324442906:web:640ef52af5b9a0442806a3"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// -------- LOGIN --------
-const emailInput = document.getElementById("emailInput");
-const passwordInput = document.getElementById("passwordInput");
-document.getElementById("registerBtn").addEventListener("click", async ()=>{ try{ await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Registrado correctamente"); }catch(e){ console.log(e.message); alert(e.message); }});
-document.getElementById("loginBtn").addEventListener("click", async ()=>{ try{ await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Login correcto"); }catch(e){ console.log(e.message); alert(e.message); }});
-onAuthStateChanged(auth,user=>{ if(user){ document.getElementById("loginBox").style.display="none"; document.getElementById("game").style.display="block"; initGame(); }});
+/* LOGIN */
+register.onclick = () =>
+  createUserWithEmailAndPassword(auth,email.value,password.value);
 
-function initGame(){
-  const car = document.getElementById("car");
-  const turboRing = document.getElementById("turboRing");
-  const modeDisplay = document.getElementById("modeDisplay");
-  const miniCar = document.getElementById("miniCar");
-  const mapEl = document.getElementById("map");
+login.onclick = () =>
+  signInWithEmailAndPassword(auth,email.value,password.value);
 
-  let x=window.innerWidth/2, y=window.innerHeight/2, angle=0, speed=0, turbo=100;
-  let keys={}, driveType="normal", paused=false, particles=[], obstacles=[];
-
-  // --------- COCHES ---------
-  const carList = [{name:'Nissan GTR', width:26,height:48,color:'red'},{name:'BMW M3', width:26,height:48,color:'blue'},{name:'BMW i8', width:26,height:48,color:'cyan'},{name:'BMW X5', width:28,height:50,color:'green'},{name:'Bus', width:40,height:70,color:'yellow'}];
-  const cochesSection = document.getElementById('cochesSection');
-  carList.forEach(c=>{
-    const div=document.createElement('div'); div.classList.add('option'); div.textContent=c.name; div.style.background=c.color;
-    div.addEventListener("click",()=>{ document.querySelectorAll('#cochesSection .option').forEach(o=>o.classList.remove('selected')); div.classList.add('selected'); car.style.width=c.width+'px'; car.style.height=c.height+'px'; car.style.background=c.color; miniCar.style.width=(c.width/3)+'px'; miniCar.style.height=(c.height/3)+'px'; });
-    cochesSection.appendChild(div);
-  });
-
-  // --------- INPUT ---------
-  document.addEventListener("keydown", e=>{ if(["w","a","s","d"," "].includes(e.key)) e.preventDefault(); if(e.key==="Escape"){ paused=!paused; document.getElementById("menuOverlay").style.display=paused?'flex':'none'; } if(!paused && driveType==="drift" && e.key==="e") angle+=20; keys[e.key]=true; });
-  document.addEventListener("keyup", e=> keys[e.key]=false);
-  window.addEventListener("blur", ()=>{ for(let k in keys) keys[k]=false; });
-
-  // --------- MENÚ ---------
-  document.querySelectorAll('#menuBox .menuButton[data-section]').forEach(btn=>{ btn.addEventListener("click", ()=>{ const id=btn.getAttribute('data-section'); document.querySelectorAll('.section').forEach(s=>s.style.display='none'); document.getElementById(id).style.display='block'; });});
-  document.querySelectorAll('#menuBox .option[data-drive]').forEach(opt=>{ opt.addEventListener("click", ()=>{ driveType=opt.getAttribute('data-drive'); modeDisplay.textContent="Modo: "+(driveType==="normal"?"Normal":driveType==="race"?"Carrera":"Drift"); });});
-  document.querySelectorAll('#menuBox .option[data-world]').forEach(opt=>{ opt.addEventListener("click", ()=>{ paused=false; document.getElementById("menuOverlay").style.display='none'; });});
-  document.querySelectorAll('#menuBox .menuButton[data-submenu]').forEach(btn=>{ btn.addEventListener("click", ()=>{ const id=btn.getAttribute('data-submenu'); document.querySelectorAll('#multiplayerSection .section').forEach(s=>s.style.display='none'); document.getElementById(id).style.display='block'; });});
-
-  // --------- OBSTÁCULOS ---------
-  for(let i=0;i<8;i++){ let o=document.createElement('div'); o.className='obstacle'; o.style.left=Math.random()*(window.innerWidth-60)+'px'; o.style.top=Math.random()*(window.innerHeight-60)+'px'; mapEl.appendChild(o); obstacles.push(o); }
-
-  function createParticle(px,py){ let p=document.createElement('div'); p.className='particle'; p.style.left=px+'px'; p.style.top=py+'px'; mapEl.appendChild(p); particles.push({el:p,x:px,y:py,life:30}); }
-  function updateParticles(){ for(let i=particles.length-1;i>=0;i--){ let p=particles[i]; p.y+=Math.random()*2; p.x+=Math.random()-0.5; p.life--; p.el.style.top=p.y+'px'; p.el.style.left=p.x+'px'; p.el.style.opacity=p.life/30; if(p.life<=0){ p.el.remove(); particles.splice(i,1); } } }
-
-  function gameLoop(){
-    if(!paused){
-      let turboBoost = (driveType==='race')?1.5:1;
-      let speedFactor = (driveType==='race')?1.3:1;
-      if(keys['a']) angle -= 4*speedFactor;
-      if(keys['d']) angle += 4*speedFactor;
-      if(keys['w']) speed += 0.3*speedFactor;
-      if(keys['s']) speed -= 0.3*speedFactor;
-
-      // Derrape partículas
-      if(driveType==='drift' && (keys['a']||keys['d']) && keys['w']) createParticle(x,y);
-
-      x = Math.max(20,Math.min(window.innerWidth-20, x + Math.sin(angle*Math.PI/180)*speed));
-      y = Math.max(20,Math.min(window.innerHeight-20, y - Math.cos(angle*Math.PI/180)*speed));
-
-      // Colisiones
-      obstacles.forEach(o=>{ 
-        let ox=o.offsetLeft, oy=o.offsetTop, ow=o.offsetWidth, oh=o.offsetHeight;
-        if(x>ox && x<ox+ow && y>oy && y<oy+oh){ speed*=-0.5; } 
-      });
-
-      car.style.left = x+'px';
-      car.style.top = y+'px';
-      car.style.transform = `rotate(${angle}deg)`;
-
-      miniCar.style.left = (x/window.innerWidth*200)+'px';
-      miniCar.style.top = (y/window.innerHeight*200)+'px';
-      miniCar.style.transform = `rotate(${angle}deg)`;
-
-      if(keys[' '] && turbo>0){ speed += 0.7*turboBoost; turbo-=1.2; } else if(turbo<100) turbo+=0.5;
-      speed *= 0.95;
-      turbo = Math.max(0,Math.min(100,turbo));
-      turboRing.style.background = `conic-gradient(dodgerblue ${turbo*3.6}deg, #111 ${turbo*3.6}deg)`;
-    }
-
-    updateParticles();
-    requestAnimationFrame(gameLoop);
+onAuthStateChanged(auth,user=>{
+  if(user){
+    loginBox.style.display="none";
+    game.style.display="block";
+    startGame();
   }
+});
 
-  gameLoop();
+/* JUEGO */
+function startGame(){
+  const car=document.getElementById("car");
+  const turboRing=document.getElementById("turboRing");
+
+  let x=innerWidth/2,y=innerHeight/2;
+  let angle=0,speed=0,turbo=100;
+  let keys={},paused=false;
+
+  addEventListener("keydown",e=>{
+    if(e.key==="Escape"){
+      paused=!paused;
+      menuOverlay.style.display=paused?"flex":"none";
+    }
+    keys[e.key]=true;
+  });
+  addEventListener("keyup",e=>keys[e.key]=false);
+
+  resumeBtn.onclick=()=>{
+    paused=false;
+    menuOverlay.style.display="none";
+  };
+
+  function loop(){
+    if(!paused){
+      if(keys.w) speed+=0.3;
+      if(keys.s) speed-=0.3;
+      if(keys.a) angle-=4;
+      if(keys.d) angle+=4;
+
+      if(keys[" "] && turbo>0){
+        speed+=0.6;
+        turbo-=1.2;
+      }else if(turbo<100){
+        turbo+=0.5;
+      }
+
+      speed*=0.96;
+
+      x+=Math.sin(angle*Math.PI/180)*speed;
+      y-=Math.cos(angle*Math.PI/180)*speed;
+
+      x=Math.max(20,Math.min(innerWidth-20,x));
+      y=Math.max(20,Math.min(innerHeight-20,y));
+
+      car.style.left=x+"px";
+      car.style.top=y+"px";
+      car.style.transform=`rotate(${angle}deg)`;
+
+      turboRing.style.background=
+        `conic-gradient(#1e90ff ${turbo*3.6}deg,#111 ${turbo*3.6}deg)`;
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
 }
 </script>
+
 </body>
 </html>
