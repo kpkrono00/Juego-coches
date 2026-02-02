@@ -5,7 +5,7 @@
 <title>Juego de Coches</title>
 <style>
 body { margin:0; overflow:hidden; font-family:Arial,sans-serif; background:#222; color:white; display:flex; justify-content:center; align-items:center; height:100vh; }
-input, button { width:200px; padding:10px; margin:5px; }
+input, button { width:200px; padding:10px; margin:5px; cursor:pointer; }
 
 /* LOGIN */
 #loginBox { background: #111; padding: 20px; border-radius: 10px; text-align: center; z-index: 1000; }
@@ -15,6 +15,7 @@ input, button { width:200px; padding:10px; margin:5px; }
 #map { position:fixed; inset:0; background: repeating-linear-gradient(45deg,#2b2b2b 0px,#2b2b2b 40px,#3a3a3a 40px,#3a3a3a 80px); }
 #car { position:absolute; width:26px; height:40px; background:red; border:2px solid black; top:50%; left:50%; transform-origin:center; margin-left:-13px; margin-top:-20px; }
 
+/* MENÚ */
 #menuOverlay { position:fixed; inset:0; display:none; z-index:1000; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:white; }
 #menuBox { width:500px; background:rgba(0,0,0,0.9); padding:20px; border-radius:12px; display:flex; flex-direction:column; align-items:center; }
 .menuButton { padding:12px 25px; margin:10px; font-size:20px; border-radius:8px; border:1px solid #444; cursor:pointer; background:#1e90ff; color:white; width:70%; text-align:center; }
@@ -99,7 +100,6 @@ input, button { width:200px; padding:10px; margin:5px; }
   </div>
 </div>
 
-<!-- FIREBASE + JUEGO -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
@@ -122,13 +122,13 @@ window.register = async () => { try{ await createUserWithEmailAndPassword(auth,e
 window.login = async () => { try{ await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Login correcto"); } catch(e){ alert(e.message); } };
 onAuthStateChanged(auth,user=>{ if(user){ document.getElementById("loginBox").style.display="none"; document.getElementById("game").style.display="block"; } });
 
-// ------------------ JUEGO ------------------
+// ------------------- JUEGO -------------------
 const car = document.getElementById("car");
 const turboRing = document.getElementById("turboRing");
 const menuOverlay = document.getElementById("menuOverlay");
 const modeDisplay = document.getElementById("modeDisplay");
 
-let x = window.innerWidth/2, y = window.innerHeight/2, angle=0, speed=0, turbo=100;
+let x=window.innerWidth/2, y=window.innerHeight/2, angle=0, speed=0, turbo=100;
 let keys={}, driveType="normal", paused=false, currentWorld="normal";
 
 const carList = [
@@ -145,33 +145,28 @@ document.addEventListener("keydown", e=>{ if(["w","a","s","d"," "].includes(e.ke
 document.addEventListener("keyup", e=> keys[e.key]=false);
 window.addEventListener("blur", ()=>{ for(let k in keys) keys[k]=false; });
 
-/* -------------------- AQUI CAMBIAMOS -------------------- */
+// ----- FUNCIONES DEL MENÚ -----
 function toggleMenu(){ 
-  if(menuOverlay.style.display==='flex'){ menuOverlay.style.display='none'; paused=false; } 
-  else{ menuOverlay.style.display='flex'; paused=true; } 
+  menuOverlay.style.display = (menuOverlay.style.display==='flex')?'none':'flex';
+  paused = (menuOverlay.style.display==='flex');
 }
 
 function toggleSection(id){
   const sections = document.querySelectorAll('.section');
-  sections.forEach(s=>{
-    if(s.id===id) s.style.display = (s.style.display==='block')?'none':'block';
-    else s.style.display='none';
-  });
+  sections.forEach(s=> s.style.display = (s.id===id)? (s.style.display==='block'?'none':'block') : 'none');
 }
-/* -------------------- FIN CAMBIO -------------------- */
 
+function showSubMenu(id){ document.querySelectorAll('#multiplayerSection .section').forEach(s=> s.style.display=(s.id===id)?'block':'none'); }
 function closeAllSections(){ document.querySelectorAll('.section').forEach(s=>s.style.display='none'); }
 function selectCar(el,c){ document.querySelectorAll('#cochesSection .option').forEach(o=>o.classList.remove('selected')); el.classList.add('selected'); car.style.width=c.width+'px'; car.style.height=c.height+'px'; car.style.background=c.color; }
 function setWorld(type){ currentWorld=type; paused=false; menuOverlay.style.display='none'; }
 function setDriveType(type){ driveType=type; modeDisplay.textContent="Modo: "+(type==="normal"?"Normal":type==="race"?"Carrera":"Drift"); }
-function showSubMenu(id){ document.querySelectorAll('#multiplayerSection .section').forEach(s=> s.style.display=(s.id===id)?'block':'none'); }
-const friends = [];
-function addFriend(){ const name=document.getElementById('friendName').value; if(name){ friends.push(name); document.getElementById('friendsList').textContent=friends.join(', '); } }
-let roomCodes = [];
-function createRoom(){ const code=document.getElementById('roomCode').value; if(code){ roomCodes.push(code); document.getElementById('roomList').textContent='Sala creada: '+code; } }
+const friends=[]; function addFriend(){ const name=document.getElementById('friendName').value; if(name){ friends.push(name); document.getElementById('friendsList').textContent=friends.join(', '); } }
+let roomCodes=[]; function createRoom(){ const code=document.getElementById('roomCode').value; if(code){ roomCodes.push(code); document.getElementById('roomList').textContent='Sala creada: '+code; } }
 function joinRoom(){ const code=document.getElementById('joinCode').value; if(roomCodes.includes(code)){ alert('Te has unido a la sala: '+code); } else alert('Código incorrecto'); }
 function registerUser(){ const user=document.getElementById('username').value; const pass=document.getElementById('password').value; if(user && pass){ localStorage.setItem('username',user); localStorage.setItem('password',pass); document.getElementById('registerStatus').textContent='Registrado!'; } }
 
+// ----- LOOP JUEGO -----
 function update(){
   if(!paused){
     let turboBoost = (driveType==='race')?1.5:1;
