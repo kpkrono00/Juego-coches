@@ -2,117 +2,57 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Juego de Coches Tope Completo</title>
+<title>Juego de Coches Online</title>
 <style>
-/* --------- ESTILOS GENERALES --------- */
-body { margin:0; font-family:Arial,sans-serif; background:#222; color:white; overflow:hidden; }
-input { padding:8px; margin:5px 0; border-radius:5px; border:1px solid #555; width:200px; }
-button { cursor:pointer; border:none; border-radius:5px; padding:8px 15px; }
-
-/* --------- LOGIN --------- */
-#loginBox { background:#111; padding:30px; border-radius:15px; text-align:center; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2000; box-shadow:0 0 20px #000; }
-#loginBox h2 { margin-bottom:15px; }
-
-/* --------- JUEGO --------- */
-#game { display:none; width:100vw; height:100vh; position:relative; }
-#map { position:absolute; inset:0; background: repeating-linear-gradient(45deg,#2b2b2b 0px,#2b2b2b 40px,#3a3a3a 40px,#3a3a3a 80px); }
-#car { position:absolute; width:26px; height:40px; background:red; border:2px solid black; top:50%; left:50%; transform-origin:50% 50%; margin-left:-13px; margin-top:-20px; transition:background 0.2s, width 0.2s, height 0.2s; }
-
-/* --------- MENÚ --------- */
-#menuOverlay { position:absolute; inset:0; background:rgba(0,0,0,0.7); display:none; z-index:1500; justify-content:center; align-items:center; pointer-events:none; flex-direction:column; }
-#menuBox { width:600px; background:rgba(0,0,0,0.95); padding:25px; border-radius:20px; display:flex; flex-direction:column; align-items:center; pointer-events:auto; box-shadow:0 0 25px #000; }
-.menuButton { padding:12px 25px; margin:10px; font-size:20px; border-radius:8px; border:1px solid #444; cursor:pointer; background:#1e90ff; color:white; width:80%; text-align:center; transition:all 0.2s; }
-.menuButton:hover { background:#4682b4; transform:scale(1.05); }
-.section { display:none; margin-top:15px; width:100%; max-height:250px; overflow-y:auto; pointer-events:auto; }
-.option { padding:12px; border:1px solid #444; margin-bottom:10px; cursor:pointer; border-radius:8px; transition:all 0.2s; }
-.option:hover { background:#333; }
-.option.selected { background:#1e90ff; color:white; }
-
-/* --------- TURBO UI --------- */
-#turboUI { position:fixed; right:30px; top:50%; width:120px; height:120px; z-index:900; pointer-events:none; }
-#turboRing { width:100%; height:100%; border-radius:50%; background:conic-gradient(dodgerblue 360deg,#111 360deg); transition:background 0.1s; }
-#turboCenter { position:absolute; width:75px; height:75px; background:black; border-radius:50%; top:22.5px; left:22.5px; display:flex; align-items:center; justify-content:center; font-size:32px; pointer-events:none; border:2px solid #1e90ff; }
-
-/* --------- MODO DISPLAY --------- */
-#modeDisplay { position:fixed; left:10px; top:10px; color:white; font-size:22px; z-index:950; text-shadow:0 0 5px #000; }
+body{margin:0;background:#222;color:white;font-family:Arial;overflow:hidden}
+input{padding:8px;margin:5px;border-radius:5px;border:1px solid #555}
+button{padding:10px 20px;border:none;border-radius:6px;cursor:pointer;background:#1e90ff;color:white}
+#loginBox{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;padding:25px;border-radius:15px;z-index:2000}
+#game{display:none}
+#menuOverlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;z-index:1500;justify-content:center;align-items:center}
+#menuBox{background:#000;padding:20px;border-radius:15px;width:500px}
+.menuButton{width:100%;margin:6px 0}
+.section{display:none;margin-top:10px}
+.friend{display:flex;align-items:center;gap:8px;margin:4px 0}
 </style>
 </head>
+
 <body>
 
-<!-- --------- LOGIN --------- -->
+<!-- LOGIN -->
 <div id="loginBox">
-  <h2>Registro / Login</h2>
+  <h2>Login / Registro</h2>
   <input id="emailInput" type="email" placeholder="Email"><br>
   <input id="passwordInput" type="password" placeholder="Contraseña"><br><br>
   <button id="registerBtn">Registrarse</button>
   <button id="loginBtn">Entrar</button>
 </div>
 
-<!-- --------- JUEGO --------- -->
+<!-- JUEGO -->
 <div id="game">
-  <div id="map"></div>
-  <div id="car"></div>
-  <div id="modeDisplay">Modo: Normal</div>
-
-  <!-- MENÚ -->
   <div id="menuOverlay">
     <div id="menuBox">
-      <h2>Opciones del Juego</h2>
-      <button class="menuButton" data-section="cochesSection">Coches</button>
-      <button class="menuButton" data-section="driveSection">Tipo de conducción</button>
-      <button class="menuButton" data-section="worldsSection">Mundos</button>
-      <button class="menuButton" data-section="multiplayerSection">Multijugador</button>
+      <h3>Multijugador</h3>
+      <button class="menuButton" id="openFriends">Añadir amigos</button>
 
-      <!-- Secciones -->
-      <div id="cochesSection" class="section"></div>
-      <div id="driveSection" class="section">
-        <div class="option" data-drive="normal">Normal</div>
-        <div class="option" data-drive="race">Carrera</div>
-        <div class="option" data-drive="drift">Drift</div>
-      </div>
-      <div id="worldsSection" class="section">
-        <div class="option" data-world="normal">Mundo Normal</div>
-        <div class="option" data-world="race">Carrera</div>
-      </div>
-      <div id="multiplayerSection" class="section">
-        <h3>Multijugador</h3>
-        <button class="menuButton" data-submenu="friendsSubmenu">Añadir Amigos</button>
-        <button class="menuButton" data-submenu="roomSubmenu">Sala</button>
-        <button class="menuButton" data-submenu="registerSubmenu">Registrarse</button>
-
-        <div id="friendsSubmenu" class="section">
-          <input type="text" id="friendName" placeholder="Nombre del amigo" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="addFriendBtn" class="menuButton">Añadir</button>
-          <div id="friendsList"></div>
-        </div>
-        <div id="roomSubmenu" class="section">
-          <input type="text" id="roomCode" placeholder="Código de sala" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="createRoomBtn" class="menuButton">Crear Sala</button>
-          <input type="text" id="joinCode" placeholder="Código para unirse" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="joinRoomBtn" class="menuButton">Unirse</button>
-          <div id="roomList"></div>
-        </div>
-        <div id="registerSubmenu" class="section">
-          <input type="text" id="username" placeholder="Nombre" style="width:90%; padding:8px; margin-bottom:5px;">
-          <input type="password" id="passwordReg" placeholder="Contraseña" style="width:90%; padding:8px; margin-bottom:5px;">
-          <button id="registerUserBtn" class="menuButton">Registrar</button>
-          <div id="registerStatus"></div>
-        </div>
+      <div id="friendsSection" class="section">
+        <input id="friendEmail" placeholder="Email del amigo">
+        <button id="addFriendBtn">Añadir</button>
+        <div id="friendsList"></div>
       </div>
     </div>
   </div>
 
-  <!-- TURBO UI -->
-  <div id="turboUI">
-    <div id="turboRing"></div>
-    <div id="turboCenter">⚡</div>
-  </div>
+  <p style="position:fixed;top:10px;left:10px">Pulsa ESC para menú</p>
 </div>
 
 <script type="module">
-// ---------- FIREBASE ----------
+/* ---------------- FIREBASE ---------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } 
+from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDocs, collection, updateDoc } 
+from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
@@ -122,159 +62,69 @@ const firebaseConfig = {
   messagingSenderId: "34324442906",
   appId: "1:34324442906:web:640ef52af5b9a0442806a3"
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-// ---------- LOGIN ----------
-const emailInput = document.getElementById("emailInput");
-const passwordInput = document.getElementById("passwordInput");
+/* ---------------- LOGIN ---------------- */
+registerBtn.onclick = async ()=>{
+  await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
+};
 
-document.getElementById("registerBtn").addEventListener("click", async ()=>{
-  try{
-    await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
-    alert("Registrado correctamente");
-  }catch(e){ console.log(e.message); alert("Error: "+e.message); }
-});
+loginBtn.onclick = async ()=>{
+  await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
+};
 
-document.getElementById("loginBtn").addEventListener("click", async ()=>{
-  try{
-    await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
-    alert("Login correcto");
-  }catch(e){ console.log(e.message); alert("Error: "+e.message); }
-});
-
-onAuthStateChanged(auth,user=>{
+onAuthStateChanged(auth, async user=>{
   if(user){
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("game").style.display="block";
+    loginBox.style.display="none";
+    game.style.display="block";
+
+    await setDoc(doc(db,"users",user.uid),{
+      email:user.email,
+      online:true
+    },{merge:true});
   }
 });
 
-// ---------- VARIABLES JUEGO ----------
-const car = document.getElementById("car");
-const turboRing = document.getElementById("turboRing");
-const menuOverlay = document.getElementById("menuOverlay");
-const modeDisplay = document.getElementById("modeDisplay");
-
-let x=window.innerWidth/2, y=window.innerHeight/2, angle=0, speed=0, turbo=100;
-let keys={}, driveType="normal", paused=false, currentWorld="normal";
-
-// ---------- LISTA DE COCHES ----------
-const carList = [
-  {name:'Nissan GTR', width:26, height:48, color:'red'},
-  {name:'BMW M3', width:26, height:48, color:'blue'},
-  {name:'BMW i8', width:26, height:48, color:'cyan'},
-  {name:'BMW X5', width:28, height:50, color:'green'},
-  {name:'Bus', width:40, height:70, color:'yellow'}
-];
-const cochesSection = document.getElementById('cochesSection');
-carList.forEach(c=>{
-  const div=document.createElement('div'); 
-  div.classList.add('option'); 
-  div.textContent=c.name; 
-  div.style.background=c.color;
-  div.addEventListener("click",()=>{
-    document.querySelectorAll('#cochesSection .option').forEach(o=>o.classList.remove('selected'));
-    div.classList.add('selected'); 
-    car.style.width=c.width+'px'; 
-    car.style.height=c.height+'px'; 
-    car.style.background=c.color; 
-  });
-  cochesSection.appendChild(div);
-});
-
-// ---------- INPUT ----------
-document.addEventListener("keydown", e=>{ 
-  if(["w","a","s","d"," "].includes(e.key)) e.preventDefault(); 
-  if(e.key==="Escape") { 
-    paused = !paused; 
-    menuOverlay.style.display = paused?'flex':'none'; 
-  } 
-  if(!paused && driveType==="drift" && e.key==="e") angle+=20; 
-  keys[e.key]=true; 
-});
-document.addEventListener("keyup", e=> keys[e.key]=false);
-window.addEventListener("blur", ()=>{ for(let k in keys) keys[k]=false; });
-
-// ---------- MENÚ ----------
-document.querySelectorAll('#menuBox .menuButton[data-section]').forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    const id=btn.getAttribute('data-section');
-    document.querySelectorAll('.section').forEach(s=>s.style.display='none');
-    document.getElementById(id).style.display='block';
-  });
-});
-document.querySelectorAll('#menuBox .option[data-drive]').forEach(opt=>{
-  opt.addEventListener("click", ()=>{
-    driveType=opt.getAttribute('data-drive'); 
-    modeDisplay.textContent="Modo: "+(driveType==="normal"?"Normal":driveType==="race"?"Carrera":"Drift"); 
-  });
-});
-document.querySelectorAll('#menuBox .option[data-world]').forEach(opt=>{
-  opt.addEventListener("click", ()=>{
-    currentWorld=opt.getAttribute('data-world'); 
-    paused=false; 
-    menuOverlay.style.display='none'; 
-  });
-});
-document.querySelectorAll('#menuBox .menuButton[data-submenu]').forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    const id=btn.getAttribute('data-submenu'); 
-    document.querySelectorAll('#multiplayerSection .section').forEach(s=>s.style.display='none'); 
-    document.getElementById(id).style.display='block'; 
-  });
-});
-
-// ---------- MULTIJUGADOR SIMULADO ----------
-const friends=[]; 
-document.getElementById('addFriendBtn').addEventListener("click", ()=>{
-  const name=document.getElementById('friendName').value; 
-  if(name){ friends.push(name); document.getElementById('friendsList').textContent=friends.join(', '); }
-});
-let roomCodes=[]; 
-document.getElementById('createRoomBtn').addEventListener("click", ()=>{
-  const code=document.getElementById('roomCode').value; 
-  if(code){ roomCodes.push(code); document.getElementById('roomList').textContent='Sala creada: '+code; }
-});
-document.getElementById('joinRoomBtn').addEventListener("click", ()=>{
-  const code=document.getElementById('joinCode').value; 
-  if(roomCodes.includes(code)){ alert('Te has unido a la sala: '+code); } 
-  else alert('Código incorrecto');
-});
-document.getElementById('registerUserBtn').addEventListener("click", ()=>{
-  const user=document.getElementById('username').value; 
-  const pass=document.getElementById('passwordReg').value;
-  if(user && pass){ localStorage.setItem('username',user); localStorage.setItem('password',pass); document.getElementById('registerStatus').textContent='Registrado!'; }
-});
-
-// ---------- LOOP JUEGO ----------
-function update(){
-  if(!paused){
-    let turboBoost = (driveType==='race')?1.5:1;
-    let speedFactor = (driveType==='race')?1.3:1;
-
-    if(keys['a']) angle -= 4*speedFactor;
-    if(keys['d']) angle += 4*speedFactor;
-    if(keys['w']) speed += 0.3*speedFactor;
-    if(keys['s']) speed -= 0.3*speedFactor;
-
-    x = Math.max(20,Math.min(window.innerWidth-20, x + Math.sin(angle*Math.PI/180)*speed));
-    y = Math.max(20,Math.min(window.innerHeight-20, y - Math.cos(angle*Math.PI/180)*speed));
-
-    car.style.left = x+'px';
-    car.style.top = y+'px';
-    car.style.transform = `rotate(${angle}deg)`;
-
-    if(keys[' '] && turbo>0){ speed += 0.7*turboBoost; turbo-=1.2; }
-    else if(turbo<100) turbo+=0.5;
-
-    speed *= 0.95;
-    turbo = Math.max(0,Math.min(100,turbo));
-    turboRing.style.background = `conic-gradient(dodgerblue ${turbo*3.6}deg, #111 ${turbo*3.6}deg)`;
+window.addEventListener("beforeunload", async ()=>{
+  if(auth.currentUser){
+    await updateDoc(doc(db,"users",auth.currentUser.uid),{online:false});
   }
-  requestAnimationFrame(update);
-}
-update();
+});
+
+/* ---------------- MENÚ ---------------- */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    menuOverlay.style.display = menuOverlay.style.display==="flex"?"none":"flex";
+  }
+});
+
+openFriends.onclick=()=>{
+  friendsSection.style.display="block";
+};
+
+/* ---------------- AMIGOS ---------------- */
+addFriendBtn.onclick = async ()=>{
+  const email = friendEmail.value;
+  if(!email) return;
+
+  const snap = await getDocs(collection(db,"users"));
+  let found=null;
+
+  snap.forEach(d=>{
+    if(d.data().email===email) found=d.data();
+  });
+
+  if(!found){
+    alert("❌ Ese correo no está registrado");
+    return;
+  }
+
+  const dot = found.online ? "🟢" : "🔴";
+  friendsList.innerHTML += `<div class="friend">${dot} ${email}</div>`;
+};
 </script>
 </body>
 </html>
