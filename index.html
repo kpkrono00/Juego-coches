@@ -1,136 +1,70 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Juego de Coches Online</title>
-<style>
-body { margin:0; font-family:Arial; background:#111; color:white; }
-#menu { position:fixed; inset:0; background:rgba(0,0,0,.85); display:flex; justify-content:center; align-items:center; }
-.box { background:#222; padding:20px; border-radius:10px; width:320px; }
-input, button { width:100%; padding:10px; margin:6px 0; }
-button { background:dodgerblue; color:white; border:none; cursor:pointer; }
-.friend { display:flex; justify-content:space-between; padding:6px; border-bottom:1px solid #333; }
-.online { color:lime; }
-.offline { color:red; }
-</style>
+  <meta charset="UTF-8">
+  <title>Juego de coches</title>
 </head>
 <body>
 
-<div id="menu">
-  <div class="box" id="authBox">
-    <h2>Registro / Login</h2>
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="register()">Registrarse</button>
-    <button onclick="login()">Entrar</button>
-    <p id="msg"></p>
-  </div>
+  <h2>Registro / Login</h2>
 
-  <div class="box" id="friendsBox" style="display:none">
-    <h2>Amigos</h2>
-    <input id="friendName" placeholder="Nombre del amigo">
-    <button onclick="addFriend()">Añadir amigo</button>
-    <div id="friendsList"></div>
-    <button onclick="logout()">Salir</button>
-  </div>
-</div>
+  <input id="email" placeholder="email">
+  <br><br>
+  <input id="password" type="password" placeholder="password">
+  <br><br>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+  <button onclick="register()">Registrarse</button>
+  <button onclick="login()">Entrar</button>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
-  authDomain: "juego-de-coches-d2613.firebaseapp.com",
-  projectId: "juego-de-coches-d2613",
-  storageBucket: "juego-de-coches-d2613.firebasestorage.app",
-  messagingSenderId: "34324442906",
-  appId: "1:34324442906:web:640ef52af5b9a0442806a3"
-};
+  <!-- FIREBASE + JS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+      from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
+      authDomain: "juego-de-coches-d2613.firebaseapp.com",
+      projectId: "juego-de-coches-d2613",
+      storageBucket: "juego-de-coches-d2613.firebasestorage.app",
+      messagingSenderId: "34324442906",
+      appId: "1:34324442906:web:640ef52af5b9a0442806a3"
+    };
 
-const authBox = document.getElementById("authBox");
-const friendsBox = document.getElementById("friendsBox");
-const msg = document.getElementById("msg");
-const friendsList = document.getElementById("friendsList");
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-let currentUser = null;
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
 
-// REGISTRO
-window.register = async () => {
-  const email = email.value;
-  const password = password.value;
-  try {
-    const res = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, "users", res.user.uid), {
-      email,
-      friends: [],
-      online: true
-    });
-  } catch (e) {
-    msg.textContent = e.message;
-  }
-};
+    window.register = async () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
 
-// LOGIN
-window.login = async () => {
-  try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-  } catch (e) {
-    msg.textContent = e.message;
-  }
-};
+      alert("Botón registrar pulsado"); // 👈 DEBUG
 
-// LOGOUT
-window.logout = async () => {
-  await updateDoc(doc(db, "users", currentUser.uid), { online:false });
-  await signOut(auth);
-};
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Registrado OK");
+      } catch (e) {
+        alert(e.message);
+      }
+    };
 
-// AÑADIR AMIGO
-window.addFriend = async () => {
-  const name = friendName.value;
-  if(!name) return;
-  const ref = doc(db, "users", currentUser.uid);
-  const snap = await getDoc(ref);
-  const data = snap.data();
-  if(!data.friends.includes(name)){
-    data.friends.push(name);
-    await updateDoc(ref, { friends:data.friends });
-  }
-};
+    window.login = async () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
 
-// SESIÓN
-onAuthStateChanged(auth, async user=>{
-  if(user){
-    currentUser = user;
-    authBox.style.display="none";
-    friendsBox.style.display="block";
-    await updateDoc(doc(db,"users",user.uid),{ online:true });
-    listenFriends();
-  } else {
-    authBox.style.display="block";
-    friendsBox.style.display="none";
-  }
-});
+      alert("Botón login pulsado"); // 👈 DEBUG
 
-// ESCUCHAR AMIGOS
-function listenFriends(){
-  onSnapshot(doc(db,"users",currentUser.uid), snap=>{
-    friendsList.innerHTML="";
-    snap.data().friends.forEach(f=>{
-      const d=document.createElement("div");
-      d.className="friend";
-      d.innerHTML=`<span>${f}</span><span class="offline">●</span>`;
-      friendsList.appendChild(d);
-    });
-  });
-}
-</script>
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("Login OK");
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+  </script>
 
 </body>
 </html>
