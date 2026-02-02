@@ -3,24 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <title>Juego de coches</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      font-family: Arial;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #loginBox {
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    #game {
+      display: none;
+      font-size: 30px;
+    }
+
+    input, button {
+      width: 200px;
+      padding: 10px;
+      margin: 5px;
+    }
+  </style>
 </head>
 <body>
 
-  <h2>Registro / Login</h2>
+  <!-- LOGIN -->
+  <div id="loginBox">
+    <h2>Registro / Login</h2>
+    <input id="emailInput" placeholder="Email">
+    <input id="passwordInput" type="password" placeholder="Password">
+    <br>
+    <button onclick="register()">Registrarse</button>
+    <button onclick="login()">Entrar</button>
+  </div>
 
-  <input id="email" placeholder="email">
-  <br><br>
-  <input id="password" type="password" placeholder="password">
-  <br><br>
+  <!-- JUEGO -->
+  <div id="game">
+    🚗 JUEGO CARGADO 🚗  
+    <br>
+    (aquí va tu juego de coches)
+  </div>
 
-  <button onclick="register()">Registrarse</button>
-  <button onclick="login()">Entrar</button>
-
-  <!-- FIREBASE + JS -->
+  <!-- FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
-      from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
@@ -34,18 +75,16 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
 
     window.register = async () => {
       const email = emailInput.value;
       const password = passwordInput.value;
 
-      alert("Botón registrar pulsado"); // 👈 DEBUG
-
       try {
         await createUserWithEmailAndPassword(auth, email, password);
-        alert("Registrado OK");
+        alert("Registrado correctamente");
       } catch (e) {
         alert(e.message);
       }
@@ -55,15 +94,20 @@
       const email = emailInput.value;
       const password = passwordInput.value;
 
-      alert("Botón login pulsado"); // 👈 DEBUG
-
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        alert("Login OK");
+        alert("Login correcto");
       } catch (e) {
         alert(e.message);
       }
     };
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("game").style.display = "block";
+      }
+    });
   </script>
 
 </body>
