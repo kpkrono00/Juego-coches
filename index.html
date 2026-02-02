@@ -67,9 +67,21 @@ body { margin:0; font-family:Arial,sans-serif; background:#222; color:white; ove
       </div>
       <div id="multiplayerSection" class="section">
         <h3>Multijugador</h3>
-        <input type="email" id="friendEmail" placeholder="Email del amigo" style="width:90%; padding:8px; margin-bottom:5px;">
-        <button id="addFriendBtn" class="menuButton">Añadir</button>
-        <div id="friendsList"></div>
+        <button class="menuButton" data-submenu="friendsSubmenu">Añadir Amigos</button>
+        <button class="menuButton" data-submenu="roomSubmenu">Sala</button>
+
+        <div id="friendsSubmenu" class="section">
+          <input type="email" id="friendEmail" placeholder="Email del amigo" style="width:90%; padding:8px; margin-bottom:5px;">
+          <button id="addFriendBtn" class="menuButton">Añadir</button>
+          <div id="friendsList"></div>
+        </div>
+        <div id="roomSubmenu" class="section">
+          <input type="text" id="roomCode" placeholder="Código de sala" style="width:90%; padding:8px; margin-bottom:5px;">
+          <button id="createRoomBtn" class="menuButton">Crear Sala</button>
+          <input type="text" id="joinCode" placeholder="Código para unirse" style="width:90%; padding:8px; margin-bottom:5px;">
+          <button id="joinRoomBtn" class="menuButton">Unirse</button>
+          <div id="roomList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -97,10 +109,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-const emailInput = document.getElementById("emailInput");
-const passwordInput = document.getElementById("passwordInput");
 
 // ---------- LOGIN ----------
+const emailInput = document.getElementById("emailInput");
+const passwordInput = document.getElementById("passwordInput");
 document.getElementById("registerBtn").addEventListener("click", async ()=>{
   try{ await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Registrado correctamente"); } catch(e){ alert(e.message); }
 });
@@ -117,7 +129,6 @@ const modeDisplay = document.getElementById("modeDisplay");
 let x=window.innerWidth/2, y=window.innerHeight/2, angle=0, speed=0, turbo=100;
 let keys={}, driveType="normal", paused=false, currentWorld="normal";
 
-// Coches
 const carList = [
   {name:'Nissan GTR', width:26, height:48, color:'red'},
   {name:'BMW M3', width:26, height:48, color:'blue'},
@@ -135,7 +146,7 @@ carList.forEach(c=>{
 // ---------- INPUT ----------
 document.addEventListener("keydown", e=>{ 
   if(["w","a","s","d"," "].includes(e.key)) e.preventDefault(); 
-  if(e.key==="Escape") toggleMenu(); 
+  if(e.key==="Escape") { paused = !paused; menuOverlay.style.display = paused?'flex':'none'; } 
   if(!paused && driveType==="drift" && e.key==="e") angle+=20; 
   keys[e.key]=true; 
 });
@@ -143,7 +154,6 @@ document.addEventListener("keyup", e=> keys[e.key]=false);
 window.addEventListener("blur", ()=>{ for(let k in keys) keys[k]=false; });
 
 // ---------- MENÚ ----------
-function toggleMenu(){ paused = !paused; menuOverlay.style.display = paused?'flex':'none'; }
 document.querySelectorAll('#menuBox .menuButton[data-section]').forEach(btn=>{
   btn.addEventListener("click", ()=>{
     const id=btn.getAttribute('data-section');
@@ -157,12 +167,16 @@ document.querySelectorAll('#menuBox .option[data-drive]').forEach(opt=>{
 document.querySelectorAll('#menuBox .option[data-world]').forEach(opt=>{
   opt.addEventListener("click", ()=>{ currentWorld=opt.getAttribute('data-world'); paused=false; menuOverlay.style.display='none'; });
 });
+document.querySelectorAll('#menuBox .menuButton[data-submenu]').forEach(btn=>{
+  btn.addEventListener("click", ()=>{ const id=btn.getAttribute('data-submenu'); document.querySelectorAll('#multiplayerSection .section').forEach(s=>s.style.display='none'); document.getElementById(id).style.display='block'; });
+});
 
-// ---------- MULTIJUGADOR AMIGOS ----------
+// ---------- MULTIJUGADOR AMIGOS ONLINE ----------
 const friendsListDiv = document.getElementById('friendsList');
 const friendInput = document.getElementById('friendEmail');
 
 const sanitize = email => email.replace(/\./g,'_');
+
 function renderFriends(){
   const currentUser = sanitize(auth.currentUser.email);
   onValue(ref(db, `friends/${currentUser}`), snapshot=>{
@@ -173,14 +187,12 @@ function renderFriends(){
       friendDiv.classList.add('option');
       friendDiv.textContent = friendId.replace(/_/g,'.');
 
-      // Estado online
       onValue(ref(db, `status/${friendId}`), snap=>{
         const online = snap.val() && snap.val().online;
         friendDiv.style.background = online?'green':'red';
         friendDiv.textContent = friendId.replace(/_/g,'.') + (online?' (Online)':' (Offline)');
       });
 
-      // Click para unirse a su sala
       friendDiv.addEventListener("click", ()=>{
         onValue(ref(db, `status/${friendId}`), snap=>{
           const data = snap.val();
