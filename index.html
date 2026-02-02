@@ -69,9 +69,10 @@ body { margin:0; font-family:Arial,sans-serif; background:#222; color:white; ove
         <h3>Multijugador</h3>
         <button class="menuButton" data-submenu="friendsSubmenu">Añadir Amigos</button>
         <button class="menuButton" data-submenu="roomSubmenu">Sala</button>
+        <button class="menuButton" data-submenu="registerSubmenu">Registrarse</button>
 
         <div id="friendsSubmenu" class="section">
-          <input type="email" id="friendEmail" placeholder="Email del amigo" style="width:90%; padding:8px; margin-bottom:5px;">
+          <input type="text" id="friendName" placeholder="Nombre del amigo" style="width:90%; padding:8px; margin-bottom:5px;">
           <button id="addFriendBtn" class="menuButton">Añadir</button>
           <div id="friendsList"></div>
         </div>
@@ -81,6 +82,12 @@ body { margin:0; font-family:Arial,sans-serif; background:#222; color:white; ove
           <input type="text" id="joinCode" placeholder="Código para unirse" style="width:90%; padding:8px; margin-bottom:5px;">
           <button id="joinRoomBtn" class="menuButton">Unirse</button>
           <div id="roomList"></div>
+        </div>
+        <div id="registerSubmenu" class="section">
+          <input type="text" id="username" placeholder="Nombre" style="width:90%; padding:8px; margin-bottom:5px;">
+          <input type="password" id="passwordReg" placeholder="Contraseña" style="width:90%; padding:8px; margin-bottom:5px;">
+          <button id="registerUserBtn" class="menuButton">Registrar</button>
+          <div id="registerStatus"></div>
         </div>
       </div>
     </div>
@@ -95,7 +102,6 @@ body { margin:0; font-family:Arial,sans-serif; background:#222; color:white; ove
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-database.js";
 
 // ---------- FIREBASE ----------
 const firebaseConfig = {
@@ -108,17 +114,17 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getDatabase(app);
-
-// ---------- LOGIN ----------
 const emailInput = document.getElementById("emailInput");
 const passwordInput = document.getElementById("passwordInput");
+
+// ---------- LOGIN ----------
 document.getElementById("registerBtn").addEventListener("click", async ()=>{
   try{ await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Registrado correctamente"); } catch(e){ alert(e.message); }
 });
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
   try{ await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Login correcto"); } catch(e){ alert(e.message); }
 });
+onAuthStateChanged(auth,user=>{ if(user){ document.getElementById("loginBox").style.display="none"; document.getElementById("game").style.display="block"; } });
 
 // ---------- JUEGO ----------
 const car = document.getElementById("car");
@@ -171,69 +177,21 @@ document.querySelectorAll('#menuBox .menuButton[data-submenu]').forEach(btn=>{
   btn.addEventListener("click", ()=>{ const id=btn.getAttribute('data-submenu'); document.querySelectorAll('#multiplayerSection .section').forEach(s=>s.style.display='none'); document.getElementById(id).style.display='block'; });
 });
 
-// ---------- MULTIJUGADOR AMIGOS ONLINE ----------
-const friendsListDiv = document.getElementById('friendsList');
-const friendInput = document.getElementById('friendEmail');
-
-const sanitize = email => email.replace(/\./g,'_');
-
-function renderFriends(){
-  const currentUser = sanitize(auth.currentUser.email);
-  onValue(ref(db, `friends/${currentUser}`), snapshot=>{
-    friendsListDiv.innerHTML = "";
-    const friends = snapshot.val() || {};
-    Object.keys(friends).forEach(friendId=>{
-      const friendDiv = document.createElement('div');
-      friendDiv.classList.add('option');
-      friendDiv.textContent = friendId.replace(/_/g,'.');
-
-      onValue(ref(db, `status/${friendId}`), snap=>{
-        const online = snap.val() && snap.val().online;
-        friendDiv.style.background = online?'green':'red';
-        friendDiv.textContent = friendId.replace(/_/g,'.') + (online?' (Online)':' (Offline)');
-      });
-
-      friendDiv.addEventListener("click", ()=>{
-        onValue(ref(db, `status/${friendId}`), snap=>{
-          const data = snap.val();
-          if(data && data.online && data.world){
-            alert(`Te unes a la sala de ${friendId.replace(/_/g,'.')} en ${data.world}`);
-            currentWorld = data.world; x=100; y=100;
-          }
-        }, {onlyOnce:true});
-      });
-
-      friendsListDiv.appendChild(friendDiv);
-    });
-  });
-}
-
-// Añadir amigo
-document.getElementById('addFriendBtn').addEventListener("click", async ()=>{
-  const friendEmail = friendInput.value;
-  if(!friendEmail) return alert("Pon un email válido");
-  const currentUser = sanitize(auth.currentUser.email);
-  const friendId = sanitize(friendEmail);
-  await update(ref(db, `friends/${currentUser}`), { [friendId]: true });
-  alert(`Has añadido a ${friendEmail}`);
-  renderFriends();
+// ---------- MULTIJUGADOR SIMULADO ----------
+const friends=[]; 
+document.getElementById('addFriendBtn').addEventListener("click", ()=>{
+  const name=document.getElementById('friendName').value; if(name){ friends.push(name); document.getElementById('friendsList').textContent=friends.join(', '); }
 });
-
-// Guardar estado usuario
-function setUserOnline(){
-  const currentUser = sanitize(auth.currentUser.email);
-  set(ref(db, `status/${currentUser}`), { online:true, world:currentWorld });
-  window.addEventListener('beforeunload', ()=> set(ref(db, `status/${currentUser}`), { online:false, world:currentWorld }));
-}
-
-// ---------- ON LOGIN ----------
-onAuthStateChanged(auth,user=>{
-  if(user){
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("game").style.display="block";
-    setUserOnline();
-    renderFriends();
-  }
+let roomCodes=[]; 
+document.getElementById('createRoomBtn').addEventListener("click", ()=>{
+  const code=document.getElementById('roomCode').value; if(code){ roomCodes.push(code); document.getElementById('roomList').textContent='Sala creada: '+code; }
+});
+document.getElementById('joinRoomBtn').addEventListener("click", ()=>{
+  const code=document.getElementById('joinCode').value; if(roomCodes.includes(code)){ alert('Te has unido a la sala: '+code); } else alert('Código incorrecto');
+});
+document.getElementById('registerUserBtn').addEventListener("click", ()=>{
+  const user=document.getElementById('username').value; const pass=document.getElementById('passwordReg').value;
+  if(user && pass){ localStorage.setItem('username',user); localStorage.setItem('password',pass); document.getElementById('registerStatus').textContent='Registrado!'; }
 });
 
 // ---------- LOOP JUEGO ----------
@@ -263,7 +221,6 @@ function update(){
   requestAnimationFrame(update);
 }
 update();
-
 </script>
 </body>
 </html>
