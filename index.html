@@ -2,77 +2,43 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Juego de Coches</title>
+<title>Juego de Coches Online</title>
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #000;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-#loginBox {
-  background: #111;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
-  text-align: center;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 5px;
-  border: none;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background: #0a84ff;
-  border: none;
-  border-radius: 5px;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-#game {
-  display: none;
-  text-align: center;
-}
+body { margin:0; font-family:Arial; background:#111; color:white; }
+#menu { position:fixed; inset:0; background:rgba(0,0,0,.85); display:flex; justify-content:center; align-items:center; }
+.box { background:#222; padding:20px; border-radius:10px; width:320px; }
+input, button { width:100%; padding:10px; margin:6px 0; }
+button { background:dodgerblue; color:white; border:none; cursor:pointer; }
+.friend { display:flex; justify-content:space-between; padding:6px; border-bottom:1px solid #333; }
+.online { color:lime; }
+.offline { color:red; }
 </style>
 </head>
-
 <body>
 
-<div id="loginBox">
-  <h2>Registro / Login</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Contraseña">
-  <button id="register">Registrarse</button>
-  <button id="login">Entrar</button>
-</div>
+<div id="menu">
+  <div class="box" id="authBox">
+    <h2>Registro / Login</h2>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Contraseña">
+    <button onclick="register()">Registrarse</button>
+    <button onclick="login()">Entrar</button>
+    <p id="msg"></p>
+  </div>
 
-<div id="game">
-  <h1>🚗 Juego de Coches</h1>
-  <p>Sesión iniciada correctamente</p>
+  <div class="box" id="friendsBox" style="display:none">
+    <h2>Amigos</h2>
+    <input id="friendName" placeholder="Nombre del amigo">
+    <button onclick="addFriend()">Añadir amigo</button>
+    <div id="friendsList"></div>
+    <button onclick="logout()">Salir</button>
+  </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
@@ -85,71 +51,86 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-document.getElementById("register").onclick = () => {
+const authBox = document.getElementById("authBox");
+const friendsBox = document.getElementById("friendsBox");
+const msg = document.getElementById("msg");
+const friendsList = document.getElementById("friendsList");
+
+let currentUser = null;
+
+// REGISTRO
+window.register = async () => {
   const email = email.value;
   const password = password.value;
-  createUserWithEmailAndPassword(auth, email, password)
-    .then(() => alert("Registrado ✅"))
-    .catch(err => alert(err.message));
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, "users", res.user.uid), {
+      email,
+      friends: [],
+      online: true
+    });
+  } catch (e) {
+    msg.textContent = e.message;
+  }
 };
 
-document.getElementById("login").onclick = () => {
-  const email = email.value;
-  const password = password.value;
-  signInWithEmailAndPassword(auth, email, password)
-    .catch(err => alert(err.message));
+// LOGIN
+window.login = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+  } catch (e) {
+    msg.textContent = e.message;
+  }
 };
 
-onAuthStateChanged(auth, user => {
-  if (user) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("game").style.display = "block";
+// LOGOUT
+window.logout = async () => {
+  await updateDoc(doc(db, "users", currentUser.uid), { online:false });
+  await signOut(auth);
+};
+
+// AÑADIR AMIGO
+window.addFriend = async () => {
+  const name = friendName.value;
+  if(!name) return;
+  const ref = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  if(!data.friends.includes(name)){
+    data.friends.push(name);
+    await updateDoc(ref, { friends:data.friends });
+  }
+};
+
+// SESIÓN
+onAuthStateChanged(auth, async user=>{
+  if(user){
+    currentUser = user;
+    authBox.style.display="none";
+    friendsBox.style.display="block";
+    await updateDoc(doc(db,"users",user.uid),{ online:true });
+    listenFriends();
+  } else {
+    authBox.style.display="block";
+    friendsBox.style.display="none";
   }
 });
-</script>
-  <!-- AQUÍ PEGA EL SCRIPT -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword }
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "TU_PROYECTO.firebaseapp.com",
-      projectId: "TU_PROYECTO",
-      appId: "TU_APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    document.addEventListener("DOMContentLoaded", () => {
-
-      document.getElementById("registerBtn").addEventListener("click", () => {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        createUserWithEmailAndPassword(auth, email, password)
-          .then(() => alert("Registrado OK"))
-          .catch(e => alert(e.message));
-      });
-
-      document.getElementById("loginBtn").addEventListener("click", () => {
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        signInWithEmailAndPassword(auth, email, password)
-          .then(() => alert("Login OK"))
-          .catch(e => alert(e.message));
-      });
-
+// ESCUCHAR AMIGOS
+function listenFriends(){
+  onSnapshot(doc(db,"users",currentUser.uid), snap=>{
+    friendsList.innerHTML="";
+    snap.data().friends.forEach(f=>{
+      const d=document.createElement("div");
+      d.className="friend";
+      d.innerHTML=`<span>${f}</span><span class="offline">●</span>`;
+      friendsList.appendChild(d);
     });
-  </script>
+  });
+}
+</script>
 
 </body>
 </html>
-
-</body>
-</html>
-
