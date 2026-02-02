@@ -4,28 +4,26 @@
 <meta charset="UTF-8">
 <title>Juego de Coches</title>
 <style>
-body { margin:0; overflow:hidden; font-family:Arial,sans-serif; background:#222; color:white; display:flex; justify-content:center; align-items:center; height:100vh; }
-input, button { width:200px; padding:10px; margin:5px; cursor:pointer; }
+body { margin:0; font-family:Arial,sans-serif; background:#222; color:white; overflow:hidden; }
 
 /* LOGIN */
-#loginBox { background: #111; padding: 20px; border-radius: 10px; text-align: center; z-index: 1000; }
+#loginBox { background:#111; padding:20px; border-radius:10px; text-align:center; position:relative; z-index:2000; }
 
 /* JUEGO */
-#game { display:none; width:100%; height:100%; position:relative; }
-#map { position:fixed; inset:0; background: repeating-linear-gradient(45deg,#2b2b2b 0px,#2b2b2b 40px,#3a3a3a 40px,#3a3a3a 80px); }
+#game { display:none; width:100vw; height:100vh; position:relative; }
+#map { position:absolute; inset:0; background: repeating-linear-gradient(45deg,#2b2b2b 0px,#2b2b2b 40px,#3a3a3a 40px,#3a3a3a 80px); }
 #car { position:absolute; width:26px; height:40px; background:red; border:2px solid black; top:50%; left:50%; transform-origin:center; margin-left:-13px; margin-top:-20px; }
 
-/* MENÚ */
-#menuOverlay { position:fixed; inset:0; display:none; z-index:1000; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:white; }
+#menuOverlay { position:absolute; inset:0; background:rgba(0,0,0,0.7); display:none; z-index:1500; justify-content:center; align-items:center; }
 #menuBox { width:500px; background:rgba(0,0,0,0.9); padding:20px; border-radius:12px; display:flex; flex-direction:column; align-items:center; }
 .menuButton { padding:12px 25px; margin:10px; font-size:20px; border-radius:8px; border:1px solid #444; cursor:pointer; background:#1e90ff; color:white; width:70%; text-align:center; }
 .section { display:none; margin-top:15px; width:100%; max-height:200px; overflow-y:auto; }
 .option { padding:10px; border:1px solid #444; margin-bottom:8px; cursor:pointer; }
 .option.selected { background:#1e90ff; }
 
-#turboUI { position:fixed; right:30px; top:50%; width:100px; height:100px; z-index:900; }
+#turboUI { position:fixed; right:30px; top:50%; width:100px; height:100px; z-index:900; pointer-events:none; }
 #turboRing { width:100%; height:100%; border-radius:50%; background:conic-gradient(dodgerblue 360deg,#111 360deg); }
-#turboCenter { position:absolute; width:65px; height:65px; background:black; border-radius:50%; top:17.5px; left:17.5px; display:flex; align-items:center; justify-content:center; font-size:26px; }
+#turboCenter { position:absolute; width:65px; height:65px; background:black; border-radius:50%; top:17.5px; left:17.5px; display:flex; align-items:center; justify-content:center; font-size:26px; pointer-events:none; }
 #modeDisplay { position:fixed; left:10px; top:10px; color:white; font-size:20px; z-index:950; }
 </style>
 </head>
@@ -47,7 +45,7 @@ input, button { width:200px; padding:10px; margin:5px; cursor:pointer; }
   <div id="car"></div>
   <div id="modeDisplay">Modo: Normal</div>
 
-  <!-- MENÚ PRINCIPAL -->
+  <!-- MENÚ -->
   <div id="menuOverlay">
     <div id="menuBox">
       <h2>Opciones</h2>
@@ -104,6 +102,7 @@ input, button { width:200px; padding:10px; margin:5px; cursor:pointer; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
+// ---------------- FIREBASE ----------------
 const firebaseConfig = {
   apiKey: "AIzaSyBCutoJF6Rvw3A7ab3waAaMLDgklr5NEDA",
   authDomain: "juego-de-coches-d2613.firebaseapp.com",
@@ -112,7 +111,6 @@ const firebaseConfig = {
   messagingSenderId: "34324442906",
   appId: "1:34324442906:web:640ef52af5b9a0442806a3"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const emailInput = document.getElementById("emailInput");
@@ -122,7 +120,7 @@ window.register = async () => { try{ await createUserWithEmailAndPassword(auth,e
 window.login = async () => { try{ await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value); alert("Login correcto"); } catch(e){ alert(e.message); } };
 onAuthStateChanged(auth,user=>{ if(user){ document.getElementById("loginBox").style.display="none"; document.getElementById("game").style.display="block"; } });
 
-// ------------------- JUEGO -------------------
+// ---------------- JUEGO ----------------
 const car = document.getElementById("car");
 const turboRing = document.getElementById("turboRing");
 const menuOverlay = document.getElementById("menuOverlay");
@@ -141,23 +139,27 @@ const carList = [
 const cochesSection = document.getElementById('cochesSection');
 carList.forEach(c=>{ const div=document.createElement('div'); div.classList.add('option'); div.textContent=c.name; div.style.background=c.color; div.onclick = ()=> selectCar(div,c); cochesSection.appendChild(div); });
 
-document.addEventListener("keydown", e=>{ if(["w","a","s","d"," "].includes(e.key)) e.preventDefault(); if(e.key==="Escape") toggleMenu(); if(driveType==="drift" && e.key==="e") angle+=20; keys[e.key]=true; });
+// ---------------- INPUT ----------------
+document.addEventListener("keydown", e=>{ 
+  if(["w","a","s","d"," "].includes(e.key)) e.preventDefault(); 
+  if(e.key==="Escape") toggleMenu(); 
+  if(!paused && driveType==="drift" && e.key==="e") angle+=20; 
+  keys[e.key]=true; 
+});
 document.addEventListener("keyup", e=> keys[e.key]=false);
 window.addEventListener("blur", ()=>{ for(let k in keys) keys[k]=false; });
 
-// ----- FUNCIONES DEL MENÚ -----
+// ---------------- FUNCIONES DEL MENÚ ----------------
 function toggleMenu(){ 
-  menuOverlay.style.display = (menuOverlay.style.display==='flex')?'none':'flex';
-  paused = (menuOverlay.style.display==='flex');
+  paused = !paused;
+  menuOverlay.style.display = paused ? 'flex' : 'none';
 }
 
 function toggleSection(id){
-  const sections = document.querySelectorAll('.section');
-  sections.forEach(s=> s.style.display = (s.id===id)? (s.style.display==='block'?'none':'block') : 'none');
+  document.querySelectorAll('.section').forEach(s=>{ s.style.display = (s.id===id && s.style.display==='none') ? 'block':'none'; });
 }
 
 function showSubMenu(id){ document.querySelectorAll('#multiplayerSection .section').forEach(s=> s.style.display=(s.id===id)?'block':'none'); }
-function closeAllSections(){ document.querySelectorAll('.section').forEach(s=>s.style.display='none'); }
 function selectCar(el,c){ document.querySelectorAll('#cochesSection .option').forEach(o=>o.classList.remove('selected')); el.classList.add('selected'); car.style.width=c.width+'px'; car.style.height=c.height+'px'; car.style.background=c.color; }
 function setWorld(type){ currentWorld=type; paused=false; menuOverlay.style.display='none'; }
 function setDriveType(type){ driveType=type; modeDisplay.textContent="Modo: "+(type==="normal"?"Normal":type==="race"?"Carrera":"Drift"); }
@@ -166,7 +168,7 @@ let roomCodes=[]; function createRoom(){ const code=document.getElementById('roo
 function joinRoom(){ const code=document.getElementById('joinCode').value; if(roomCodes.includes(code)){ alert('Te has unido a la sala: '+code); } else alert('Código incorrecto'); }
 function registerUser(){ const user=document.getElementById('username').value; const pass=document.getElementById('password').value; if(user && pass){ localStorage.setItem('username',user); localStorage.setItem('password',pass); document.getElementById('registerStatus').textContent='Registrado!'; } }
 
-// ----- LOOP JUEGO -----
+// ---------------- LOOP JUEGO ----------------
 function update(){
   if(!paused){
     let turboBoost = (driveType==='race')?1.5:1;
